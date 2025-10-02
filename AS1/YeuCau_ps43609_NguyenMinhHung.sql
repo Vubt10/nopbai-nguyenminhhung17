@@ -7,13 +7,13 @@ GO
 
 -- Tạo Stored Procedure để chèn dữ liệu vào bảng NGUOIDUNG
 CREATE PROCEDURE YC_1a
-    @mand smallint,              -- Mã người dùng (khóa chính)
-    @tennd nvarchar(50),         -- Tên người dùng
-    @gioitinh nvarchar(3),       -- Giới tính (Nam hoặc Nữ)
-    @dienthoai varchar(15),      -- Số điện thoại
-    @diachi nvarchar(50),        -- Địa chỉ
-    @quan nvarchar(50),          -- Quận/Huyện
-    @email nvarchar(50)          -- Email
+    @mand smallint,              
+    @tennd nvarchar(50),        
+    @gioitinh nvarchar(3),      
+    @dienthoai varchar(15),      
+    @diachi nvarchar(50),        
+    @quan nvarchar(50),          
+    @email nvarchar(50)          
 AS
 BEGIN
     -- Kiểm tra các cột không chấp nhận NULL
@@ -30,7 +30,7 @@ BEGIN
         RETURN
     END
 
-    -- Kiểm tra định dạng giới tính (chỉ chấp nhận Nam hoặc Nữ)
+    -- Kiểm tra định dạng giới tính chỉ chấp nhận Nam hoặc Nữ
     IF @gioitinh IS NOT NULL AND @gioitinh NOT IN (N'Nam', N'Nữ')
     BEGIN
         PRINT N'Lỗi: GioiTinh chỉ được là "Nam" hoặc "Nữ"!'
@@ -70,15 +70,15 @@ GO
 
 -- Tạo Stored Procedure để chèn dữ liệu vào bảng NHATRO
 CREATE PROCEDURE YC_1b
-    @mant smallint,              -- Mã nhà trọ (khóa chính)
-    @maln smallint,              -- Mã loại nhà
-    @mand smallint,              -- Mã người dùng (khóa ngoại)
-    @dientich float,             -- Diện tích
-    @giaphong int,               -- Giá phòng
-    @diachi nvarchar(50),        -- Địa chỉ
-    @quan nvarchar(50),          -- Quận/Huyện
-    @mota nvarchar(100),         -- Mô tả
-    @ngaydang date               -- Ngày đăng
+    @mant smallint,              
+    @maln smallint,             
+    @mand smallint,             
+    @dientich float,             
+    @giaphong int,               
+    @diachi nvarchar(50),       
+    @quan nvarchar(50),         
+    @mota nvarchar(100),      
+    @ngaydang date              
 AS
 BEGIN
     -- Kiểm tra các cột không chấp nhận NULL
@@ -144,8 +144,8 @@ GO
 CREATE PROCEDURE YC_1c
     @mand smallint,              -- Mã người dùng (khóa ngoại)
     @mant smallint,              -- Mã nhà trọ (khóa ngoại)
-    @like_dislike nvarchar(10),  -- Trạng thái (like hoặc dislike)
-    @noidung nvarchar(100)       -- Nội dung đánh giá
+    @like_dislike nvarchar(10),  -- (like hoặc dislike)
+    @noidung nvarchar(100)       
 AS
 BEGIN
     -- Kiểm tra các cột không chấp nhận NULL
@@ -202,36 +202,36 @@ GO
 
 -- Tạo Stored Procedure để tìm kiếm thông tin phòng trọ theo điều kiện
 CREATE PROCEDURE SP_TimKiemPhongTro
-    @quan nvarchar(50) = NULL,          -- Quận/Huyện (tùy chọn)
-    @dientich_min float = 0,            -- Diện tích tối thiểu (mặc định 0)
+    @quan nvarchar(50) = NULL,          
+    @dientich_min float = 0,            -- Diện tích (mặc định 0)
     @dientich_max float = NULL,         -- Diện tích tối đa (tùy chọn)
-    @ngaydang_min date = NULL,          -- Ngày đăng tối thiểu (tùy chọn)
-    @ngaydang_max date = NULL,          -- Ngày đăng tối đa (tùy chọn)
-    @giaphong_min int = 0,              -- Giá phòng tối thiểu (mặc định 0)
-    @giaphong_max int = NULL            -- Giá phòng tối đa (tùy chọn)
+    @ngaydang_min date = NULL,          -- Ngày đăng tối thiểu 
+    @ngaydang_max date = NULL,          -- Ngày đăng
+    @giaphong_min int = 0,              
+    @giaphong_max int = NULL            
 AS
 BEGIN
     -- Truy vấn thông tin phòng trọ thỏa mãn điều kiện
     SELECT 
-        'Cho thuê phòng trọ tại ' + N.DiaChi + N' ' + N.Quan AS ThongTinDiaChi,  -- Cột 1: Địa chỉ + Quận
-        CAST(DienTich AS nvarchar(10)) + N' m2' AS DienTich,                    -- Cột 2: Diện tích + đơn vị
-        FORMAT(GiaPhong, 'N0') AS GiaPhong,                                     -- Cột 3: Giá phòng theo định dạng Việt Nam
-        MoTa AS MoTaPhong,                                                      -- Cột 4: Mô tả
-        FORMAT(NgayDang, 'dd-MM-yyyy') AS NgayDang,                             -- Cột 5: Ngày đăng theo định dạng Việt Nam
+        'Cho thuê phòng trọ tại ' + N.DiaChi + N' ' + N.Quan AS ThongTinDiaChi, 
+        CAST(DienTich AS nvarchar(10)) + N' m2' AS DienTich,                    
+        FORMAT(GiaPhong, 'N0') AS GiaPhong,                                     
+        MoTa AS MoTaPhong,                                                      
+        FORMAT(NgayDang, 'dd-MM-yyyy') AS NgayDang,                             
         CASE 
-            WHEN ND.GioiTinh = N'Nam' THEN N'A. ' + ND.TenND                   -- Cột 6: Tên liên hệ theo giới tính
+            WHEN ND.GioiTinh = N'Nam' THEN N'A. ' + ND.TenND                   
             WHEN ND.GioiTinh = N'Nữ' THEN N'C. ' + ND.TenND 
             ELSE ND.TenND 
         END AS TenLienHe,
-        ND.DienThoai AS SoDienThoai,                                            -- Cột 7: Số điện thoại
-        ND.DiaChi AS DiaChiLienHe                                               -- Cột 8: Địa chỉ liên hệ
+        ND.DienThoai AS SoDienThoai,                                            
+        ND.DiaChi AS DiaChiLienHe                                               
     FROM NHATRO N
     JOIN NGUOIDUNG ND ON N.MaND = ND.MaND
-    WHERE (@quan IS NULL OR N.Quan = @quan)                                     -- Lọc theo Quận
-    AND DienTich BETWEEN @dientich_min AND ISNULL(@dientich_max, DienTich)      -- Lọc theo phạm vi diện tích
-    AND GiaPhong BETWEEN @giaphong_min AND ISNULL(@giaphong_max, GiaPhong)      -- Lọc theo phạm vi giá
-    AND (@ngaydang_min IS NULL OR NgayDang >= @ngaydang_min)                    -- Lọc theo ngày đăng tối thiểu
-    AND (@ngaydang_max IS NULL OR NgayDang <= @ngaydang_max)                    -- Lọc theo ngày đăng tối đa
+    WHERE (@quan IS NULL OR N.Quan = @quan)                                    
+    AND DienTich BETWEEN @dientich_min AND ISNULL(@dientich_max, DienTich)     
+    AND GiaPhong BETWEEN @giaphong_min AND ISNULL(@giaphong_max, GiaPhong)     
+    AND (@ngaydang_min IS NULL OR NgayDang >= @ngaydang_min)                    
+    AND (@ngaydang_max IS NULL OR NgayDang <= @ngaydang_max)                    
 END
 GO
 
@@ -247,24 +247,24 @@ GO
 
 -- Tạo hàm để lấy mã người dùng dựa trên thông tin
 CREATE FUNCTION fn_GetMaND
-    (@tennd nvarchar(50),         -- Tên người dùng
-     @gioitinh nvarchar(3),       -- Giới tính
-     @dienthoai varchar(15),      -- Số điện thoại
-     @diachi nvarchar(50),        -- Địa chỉ
-     @quan nvarchar(50),          -- Quận/Huyện
-     @email nvarchar(50))         -- Email
+    (@tennd nvarchar(50),         
+     @gioitinh nvarchar(3),       
+     @dienthoai varchar(15),      
+     @diachi nvarchar(50),        
+     @quan nvarchar(50),          
+     @email nvarchar(50))       
 RETURNS smallint
 AS
 BEGIN
-    DECLARE @mand smallint                                 -- Biến lưu mã người dùng
+    DECLARE @mand smallint                           
     SELECT @mand = MaND
     FROM NGUOIDUNG
     WHERE TenND = @tennd                                   -- Kiểm tra tên
-    AND (GioiTinh = @gioitinh OR @gioitinh IS NULL)        -- Kiểm tra giới tính (tùy chọn)
-    AND (DienThoai = @dienthoai OR @dienthoai IS NULL)     -- Kiểm tra số điện thoại (tùy chọn)
+    AND (GioiTinh = @gioitinh OR @gioitinh IS NULL)        -- Kiểm tra giới tính
+    AND (DienThoai = @dienthoai OR @dienthoai IS NULL)     -- Kiểm tra số điện thoại 
     AND DiaChi = @diachi                                   -- Kiểm tra địa chỉ
-    AND (Quan = @quan OR @quan IS NULL)                    -- Kiểm tra quận (tùy chọn)
-    AND (Email = @email OR @email IS NULL)                 -- Kiểm tra email (tùy chọn)
+    AND (Quan = @quan OR @quan IS NULL)                    -- Kiểm tra quận 
+    AND (Email = @email OR @email IS NULL)                 -- Kiểm tra email 
     RETURN @mand                                           -- Trả về mã người dùng hoặc NULL nếu không tìm thấy
 END
 GO
@@ -306,14 +306,14 @@ GO
 CREATE VIEW vw_Top10NhaTroLike
 AS
 SELECT TOP 10 
-    N.DienTich,                                      -- Diện tích
-    N.GiaPhong,                                      -- Giá phòng
-    N.MoTa,                                          -- Mô tả
-    N.NgayDang,                                      -- Ngày đăng
-    ND.TenND AS TenLienHe,                           -- Tên người liên hệ
-    ND.DiaChi,                                       -- Địa chỉ
-    ND.DienThoai,                                    -- Số điện thoại
-    ND.Email                                         -- Email
+    N.DienTich,                                      
+    N.GiaPhong,                                    
+    N.MoTa,                                
+    N.NgayDang,                                  
+    ND.TenND AS TenLienHe,                         
+    ND.DiaChi,                               
+    ND.DienThoai,                             
+    ND.Email                                    
 FROM NHATRO N
 JOIN NGUOIDUNG ND ON N.MaND = ND.MaND
 JOIN DANHGIA DG ON N.MaNT = DG.MaNT
@@ -332,19 +332,19 @@ GO
 
 -- Tạo Stored Procedure để lấy thông tin đánh giá theo mã nhà trọ
 CREATE PROCEDURE SP_ThongTinDanhGia
-    @mant smallint                   -- Mã nhà trọ (khóa chính)
+    @mant smallint                   
 AS
 BEGIN
     -- Truy vấn thông tin đánh giá
     SELECT 
-        N.MaNT,                      -- Mã nhà trọ
-        ND.TenND AS TenNguoiDanhGia, -- Tên người đánh giá
-        DG.Like_Dislike AS TrangThai,-- Trạng thái (LIKE hoặc DISLIKE)
-        DG.NoiDung AS NoiDungDanhGia -- Nội dung đánh giá
+        N.MaNT,                   
+        ND.TenND AS TenNguoiDanhGia, 
+        DG.Like_Dislike AS TrangThai,
+        DG.NoiDung AS NoiDungDanhGia 
     FROM NHATRO N
     JOIN DANHGIA DG ON N.MaNT = DG.MaNT
     JOIN NGUOIDUNG ND ON DG.MaND = ND.MaND
-    WHERE N.MaNT = @mant            -- Lọc theo mã nhà trọ
+    WHERE N.MaNT = @mant          
 END
 GO
 
@@ -364,7 +364,7 @@ CREATE PROCEDURE SP_XoaNhaTroTheoDislike
 AS
 BEGIN
     BEGIN TRY
-        BEGIN TRANSACTION        -- Bắt đầu giao dịch để đảm bảo tính toàn vẹn
+        BEGIN TRANSACTION        
             -- Xóa thông tin đánh giá của các nhà trọ có số DISLIKE vượt quá
             DELETE DG
             FROM DANHGIA DG
@@ -396,12 +396,12 @@ GO
 
 -- Tạo Stored Procedure để xóa nhà trọ theo khoảng thời gian
 CREATE PROCEDURE SP_XoaNhaTroTheoThoiGian
-    @ngaydang_min date,         -- Ngày đăng tối thiểu
-    @ngaydang_max date          -- Ngày đăng tối đa
+    @ngaydang_min date,        
+    @ngaydang_max date        
 AS
 BEGIN
     BEGIN TRY
-        BEGIN TRANSACTION        -- Bắt đầu giao dịch
+        BEGIN TRANSACTION        -- Bắt đầu giao dịc
             -- Tạo bảng tạm để lưu danh sách mã nhà trọ cần xóa
             DECLARE @maNTList TABLE (MaNT smallint)
             INSERT INTO @maNTList
@@ -426,7 +426,7 @@ GO
 EXEC SP_XoaNhaTroTheoThoiGian @ngaydang_min = '2022-01-01', @ngaydang_max = '2022-12-31'
 GO
 
-- Y4.Yêu cầu quản trị CSDL 
+-- Y4.Yêu cầu quản trị CSDL 
 USE master
 GO
 
@@ -458,7 +458,7 @@ GRANT EXECUTE ON SCHEMA::dbo TO UserQLNhaTro
 GO
 
 -- Kết nối bằng tài khoản AdminQLNhaTro và tạo bản sao CSDL
--- (Lưu ý: Bạn cần kết nối SSMS bằng tài khoản AdminQLNhaTro với mật khẩu 'Admin@2025')
+-- SSMS bằng tài khoản AdminQLNhaTro với mật khẩu 'Admin@2025')
 USE master
 GO
 -- Tạo bản sao CSDL với tên QLNHATRO_Backup
