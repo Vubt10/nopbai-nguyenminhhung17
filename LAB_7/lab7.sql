@@ -1,100 +1,153 @@
-﻿--Bài 1: (4 điểm)
---Viết các hàm:
---➢ Nhập vào MaNV cho biết tuổi của nhân viên này.
-create function lab7bai1a (@manv nvarchar(9)) 
-returns int
-as
-begin
-	return(select year(getdate())-year(NGSINH)
-	from nhanvien where MANV = @manv)
-end
-PRINT CAST(dbo.lab7bai1a('001') as nvarchar(20))
-go
+﻿-- ========================================
+-- BÀI 1: VIẾT HÀM
+-- ========================================
 
---➢ Nhập vào Manv cho biết số lượng đề án nhân viên này đã tham gia
-go
-alter function lab7bai1b (@manv nvarchar(9)) 
-returns int
-as
-begin
-return(select count(*) from PHANCONG
-WHERE MA_NVIEN = @manv
-group by MA_NVIEN)
-end
-go
-print dbo.lab7bai1b('001')
---➢ Truyền tham số vào phái nam hoặc nữ, xuất số lượng nhân viên theo phái
-go
-create function lab7bai1c (@gt nvarchar(3)) 
-returns int
-as
-begin
-return(select count(MANV) from NHANVIEN
-WHERE PHAI = @gt
-group by phai)
-end
-go 
-print'nam '+cast(dbo.lab7bai1c('nam') as nvarchar(10))
-print'nu '+cast(dbo.lab7bai1c(N'Nữ') as nvarchar(10))
---➢ Truyền tham số đầu vào là tên phòng, tính mức lương trung bình của phòng đó, Cho biết 
---họ tên nhân viên (HONV, TENLOT, TENNV) có mức lương trên mức lương trung bình 
---của phòng đó.
-go
-create function lab7bai1d (@tenPhg int) 
-returns table
-as
-return( 
-select HONV,TENLOT,TENNV,luong from NHANVIEN 
-WHERE LUONG >( select avg(luong) from NHANVIEN) and PHG = @tenPhg)
-go 
-select * from lab7bai1d('1')
---➢ Tryền tham số đầu vào là Mã Phòng, cho biết tên phòng ban,
---họ tên người trưởng phòng 
---và số lượng đề án mà phòng ban đó chủ trì.
-go
-create function lab7bai1e (@maPhg int) 
-returns @tbLab7 table(tenphg nvarchar(15),honv nvarchar(15),tennv nvarchar(15),soLuong int)
-as
-begin
-insert into @tbLab7
-select TENPHG,HONV,TENNV,count(MADA)as 'so luong' from PHONGBAN
-inner join NHANVIEN on MANV = TRPHG
-inner join dean on DEAN.PHONG  = PHONGBAN.MAPHG
-WHERE MAPHG = @maPhg 
-group by TENPHG,TRPHG,TENNV,HONV
-return
-end
-go 
-select * from lab7bai1e('1')
+-- 1a. Nhập vào MaNV, cho biết tuổi của nhân viên này
+GO
+CREATE OR ALTER FUNCTION lab7bai1a (@manv NVARCHAR(9)) 
+RETURNS INT
+AS
+BEGIN
+    DECLARE @tuoi INT
+    SELECT @tuoi = YEAR(GETDATE()) - YEAR(NGSINH)
+    FROM NHANVIEN
+    WHERE MANV = @manv
+    RETURN @tuoi
+END
+GO
+PRINT N'Tuổi nhân viên 001: ' + CAST(dbo.lab7bai1a('001') AS NVARCHAR(10))
+GO
 
-drop function lab7bai1e
 
---Bài 2: (4 điểm)
---Tạo các view:
---➢ Hiển thị thông tin HoNV,TenNV,TenPHG, DiaDiemPhg.
-go
-create view lab7bai2a
-as
-select HONV,TENNV,TENPHG,DIADIEM_PHG.DIADIEM from NHANVIEN
-inner join PHONGBAN on PHONGBAN.MAPHG = NHANVIEN.PHG
-inner join DIADIEM_PHG on DIADIEM_PHG.MAPHG= PHONGBAN.MAPHG
-group by HONV,TENNV,TENPHG,DIADIEM_PHG.DIADIEM
-select * from lab7bai2a
---➢ Hiển thị thông tin TenNv, Lương, Tuổi.
-go
-create view lab7bai2b
-as
-select TENNV,LUONG,year(getdate())-year(NGSINH) as 
-'tuoi' from NHANVIEN
-select * from lab7bai2b
---➢ Hiển thị tên phòng ban và họ tên trưởng phòng của phòng ban có đông nhân viên nhất
-go
-create view lab7bai2c
-as
-select TENPHG,HONV,TENNV from NHANVIEN inner join PHONGBAN
-on PHONGBAN.MAPHG = NHANVIEN.PHG
-where TRPHG=MANV and MAPHG in (select top 1 PHG from NHANVIEN
-group by PHG
-order by count(*) desc)
+-- 1b. Nhập vào MaNV, cho biết số lượng đề án nhân viên này đã tham gia
+GO
+CREATE OR ALTER FUNCTION lab7bai1b (@manv NVARCHAR(9)) 
+RETURNS INT
+AS
+BEGIN
+    DECLARE @soLuong INT
+    SELECT @soLuong = COUNT(*) 
+    FROM PHANCONG
+    WHERE MA_NVIEN = @manv
+    RETURN ISNULL(@soLuong, 0)
+END
+GO
+PRINT N'Số đề án nhân viên 001 tham gia: ' + CAST(dbo.lab7bai1b('001') AS NVARCHAR(10))
+GO
 
-select * from lab7bai2c
+
+-- 1c. Truyền tham số vào là phái ('Nam' hoặc 'Nữ'), xuất số lượng nhân viên theo phái
+GO
+CREATE OR ALTER FUNCTION lab7bai1c (@gt NVARCHAR(3)) 
+RETURNS INT
+AS
+BEGIN
+    DECLARE @count INT
+    SELECT @count = COUNT(*) FROM NHANVIEN WHERE PHAI = @gt
+    RETURN ISNULL(@count, 0)
+END
+GO
+PRINT N'Nam: ' + CAST(dbo.lab7bai1c(N'Nam') AS NVARCHAR(10))
+PRINT N'Nữ: ' + CAST(dbo.lab7bai1c(N'Nữ') AS NVARCHAR(10))
+GO
+
+
+-- 1d. Truyền vào mã phòng, cho biết họ tên NV có lương > lương TB của phòng đó
+GO
+CREATE OR ALTER FUNCTION lab7bai1d (@maPhg INT) 
+RETURNS TABLE
+AS
+RETURN (
+    SELECT HONV, TENLOT, TENNV, LUONG
+    FROM NHANVIEN
+    WHERE PHG = @maPhg
+      AND LUONG > (SELECT AVG(LUONG) FROM NHANVIEN WHERE PHG = @maPhg)
+)
+GO
+SELECT * FROM lab7bai1d(1)
+GO
+
+
+-- 1e. Truyền vào mã phòng, cho biết tên phòng, họ tên trưởng phòng và số lượng đề án phòng đó chủ trì
+GO
+CREATE OR ALTER FUNCTION lab7bai1e (@maPhg INT)
+RETURNS @tbLab7 TABLE(
+    tenphg NVARCHAR(15),
+    honv NVARCHAR(15),
+    tennv NVARCHAR(15),
+    soLuong INT
+)
+AS
+BEGIN
+    INSERT INTO @tbLab7
+    SELECT 
+        TENPHG,
+        HONV,
+        TENNV,
+        COUNT(DEAN.MADA) AS soLuong
+    FROM PHONGBAN
+        INNER JOIN NHANVIEN ON NHANVIEN.MANV = PHONGBAN.TRPHG
+        LEFT JOIN DEAN ON DEAN.PHONG = PHONGBAN.MAPHG
+    WHERE PHONGBAN.MAPHG = @maPhg
+    GROUP BY TENPHG, HONV, TENNV
+    RETURN
+END
+GO
+SELECT * FROM lab7bai1e(1)
+GO
+
+
+-- ========================================
+-- BÀI 2: TẠO VIEW
+-- ========================================
+
+-- 2a. Hiển thị HoNV, TenNV, TenPHG, DiaDiemPhg
+GO
+CREATE OR ALTER VIEW lab7bai2a
+AS
+SELECT 
+    HONV,
+    TENNV,
+    TENPHG,
+    DIADIEM_PHG.DIADIEM
+FROM NHANVIEN
+    INNER JOIN PHONGBAN ON PHONGBAN.MAPHG = NHANVIEN.PHG
+    INNER JOIN DIADIEM_PHG ON DIADIEM_PHG.MAPHG = PHONGBAN.MAPHG
+GO
+SELECT * FROM lab7bai2a
+GO
+
+
+-- 2b. Hiển thị TenNV, Lương, Tuổi
+GO
+CREATE OR ALTER VIEW lab7bai2b
+AS
+SELECT 
+    TENNV,
+    LUONG,
+    YEAR(GETDATE()) - YEAR(NGSINH) AS TUOI
+FROM NHANVIEN
+GO
+SELECT * FROM lab7bai2b
+GO
+
+
+-- 2c. Hiển thị tên phòng ban và họ tên trưởng phòng của phòng ban có đông nhân viên nhất
+GO
+CREATE OR ALTER VIEW lab7bai2c
+AS
+SELECT 
+    TENPHG,
+    HONV,
+    TENNV
+FROM PHONGBAN
+    INNER JOIN NHANVIEN ON PHONGBAN.TRPHG = NHANVIEN.MANV
+WHERE MAPHG IN (
+    SELECT TOP 1 PHG
+    FROM NHANVIEN
+    GROUP BY PHG
+    ORDER BY COUNT(*) DESC
+)
+GO
+SELECT * FROM lab7bai2c
+GO
